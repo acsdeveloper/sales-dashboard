@@ -35,29 +35,51 @@ jobs:
         run: npm ci
 
       - name: Build with Next.js
-        run: npm run build
+        run: |
+          echo "Starting Next.js build..."
+          npm run build
+          BUILD_EXIT_CODE=$?
+          echo "Build exit code: $BUILD_EXIT_CODE"
+          if [ $BUILD_EXIT_CODE -ne 0 ]; then
+            echo "❌ Build failed with exit code $BUILD_EXIT_CODE"
+            exit $BUILD_EXIT_CODE
+          fi
+          echo "✅ Build completed successfully"
         env:
           NODE_ENV: production
           NEXT_TELEMETRY_DISABLED: 1
+          NEXT_PUBLIC_BASE_PATH: /sales-dashboard
 
       - name: Verify build output
         run: |
           echo "Checking build output..."
+          echo "Current directory contents:"
           ls -la
+          echo ""
           if [ -d "out" ]; then
-            echo "✓ out directory exists"
+            echo "✅ out directory exists"
+            echo "Contents of out directory:"
             ls -la out
+            echo ""
+            echo "Checking for index.html:"
+            if [ -f "out/index.html" ]; then
+              echo "✅ index.html found"
+            else
+              echo "❌ index.html not found!"
+              exit 1
+            fi
           else
-            echo "✗ out directory not found!"
+            echo "❌ out directory not found!"
+            echo ""
             echo "Checking for .next directory..."
-            ls -la .next || echo ".next not found"
+            if [ -d ".next" ]; then
+              echo "⚠️  .next directory exists (build completed but no export)"
+              ls -la .next
+            else
+              echo "❌ .next directory not found (build failed)"
+            fi
             exit 1
           fi
-      - name: List current directory
-        run: ls -la
-
-      - name: List out the files under out directory
-        run: ls -la out
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
