@@ -100,6 +100,19 @@ const nextConfig = {
 
 **Solution**: This is expected since GitHub Actions can't access your Google Sheets API during build. The app is client-side and will fetch data after deployment.
 
+### Build Output Directory Not Found
+
+**Error**: `tar: out: Cannot open: No such file or directory`
+
+**Cause**: The `out` directory was not created during the build process.
+
+**Solution**:
+1. Verify `next.config.mjs` has `output: 'export'` configured
+2. Check the build logs in the Actions tab for any errors
+3. Ensure all dependencies are properly installed
+4. The verification step in the workflow will help identify the issue
+5. If the build succeeds locally but fails in CI, check for environment-specific issues
+
 ### 404 Error After Deployment
 
 **Cause**: Incorrect base path configuration
